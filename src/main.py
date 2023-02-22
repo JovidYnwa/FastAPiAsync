@@ -2,7 +2,6 @@ import databases
 from fastapi import FastAPI, Request
 import sqlalchemy 
 
-import os, sys
 
 DATABASE_URL="postgresql+psycopg2://postgres:password@localhost:5432"
 database = databases.Database(DATABASE_URL)
