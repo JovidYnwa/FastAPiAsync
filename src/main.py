@@ -1,9 +1,10 @@
 import databases
 from fastapi import FastAPI, Request
 import sqlalchemy 
+import os, sys
+from decouple import config
 
-
-DATABASE_URL="postgresql+psycopg2://postgres:password@localhost:5432"
+DATABASE_URL=f"postgresql+psycopg2://{config('DB_USER')}:{config('DB_PASSWORD')}@localhost:5432"
 database = databases.Database(DATABASE_URL)
 metadata = sqlalchemy.MetaData()
 
