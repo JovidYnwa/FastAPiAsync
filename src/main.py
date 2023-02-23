@@ -1,72 +1,79 @@
 import databases
-from fastapi import FastAPI, Request
-import sqlalchemy 
-import os, sys
+import enum
+import sqlalchemy
+
+from fastapi import FastAPI
 from decouple import config
 
-DATABASE_URL=f"postgresql+psycopg2://{config('DB_USER')}:{config('DB_PASSWORD')}@localhost:5432"
+
+DATABASE_URL = f"postgresql://{config('DB_USER')}:{config('DB_PASSWORD')}@localhost:5432"
+
 database = databases.Database(DATABASE_URL)
+
 metadata = sqlalchemy.MetaData()
 
-books = sqlalchemy.Table(
-    "books",
+users = sqlalchemy.Table(
+    "users",
     metadata,
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column("title", sqlalchemy.String),
-    sqlalchemy.Column("author", sqlalchemy.String),
+    sqlalchemy.Column("email", sqlalchemy.String(120), unique=True),
+    sqlalchemy.Column("password", sqlalchemy.String(255)),
+    sqlalchemy.Column("full_name", sqlalchemy.String(200)),
+    sqlalchemy.Column("phone", sqlalchemy.String(13)),
+    sqlalchemy.Column("created_at", sqlalchemy.DateTime, nullable=False, server_default=sqlalchemy.func.now()),
+    sqlalchemy.Column(
+        "last_modified_at",
+        sqlalchemy.DateTime,
+        nullable=False,
+        server_default=sqlalchemy.func.now(),
+        onupdate=sqlalchemy.func.now(),
+    ),
 )
 
-reades = sqlalchemy.Table(
-    "readers",
+
+class ColorEnum(enum.Enum):
+    pink = "pink"
+    black = "black"
+    white = "white"
+    yellow = "yellow"
+
+
+class SizeEnum(enum.Enum):
+    xs = "xs"
+    s = "s"
+    m = "m"
+    l = "l"
+    xl = "xl"
+    xxl = "xxl"
+
+clothes = sqlalchemy.Table(
+    "clothes",
     metadata,
     sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column("first_name", sqlalchemy.String),
-    sqlalchemy.Column("last_name", sqlalchemy.String),
+    sqlalchemy.Column("name", sqlalchemy.String(120)),
+    sqlalchemy.Column("color", sqlalchemy.Enum(ColorEnum), nullable=False),
+    sqlalchemy.Column("size", sqlalchemy.Enum(SizeEnum), nullable=False),
+    sqlalchemy.Column("photo_url", sqlalchemy.String(255)),
+    sqlalchemy.Column("created_at", sqlalchemy.DateTime, nullable=False, server_default=sqlalchemy.func.now()),
+    sqlalchemy.Column(
+        "last_modified_at",
+        sqlalchemy.DateTime,
+        nullable=False,
+        server_default=sqlalchemy.func.now(),
+        onupdate=sqlalchemy.func.now(),
+    ),
 )
 
-readers_books = sqlalchemy.Table(
-    "readers_books",
-    metadata,
-    sqlalchemy.Column("id", sqlalchemy.Integer, primary_key=True),
-    sqlalchemy.Column("book_id", sqlalchemy.ForeignKey("books.id"), nullable=False),
-    sqlalchemy.Column("reader_id", sqlalchemy.ForeignKey("readers.id"), nullable=False),
-)
-
-engine = sqlalchemy.create_engine(DATABASE_URL)
-metadata.create_all(engine)
 
 app = FastAPI()
+
 
 @app.on_event("startup")
 async def startup():
     await database.connect()
 
+
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()
 
-@app.get("/books")
-async def get_all_books():
-    query = books.select()
-    return await database.fetch_all(query)
-
-@app.post("/books")
-async def create_books(requst: Request):
-    data = await requst.json()
-    query = books.insert().values(**data)
-    last_record_id = await database.execute(query)
-    return {"id": last_record_id}
-
-@app.post("/readers")
-async def create_books(requst: Request):
-    data = await requst.json()
-    query = reades.insert().values(**data)
-    last_record_id = await database.execute(query)
-    return {"id": last_record_id}
-
-@app.post("/read")
-async def create_books(requst: Request):
-    data = await requst.json()
-    query = readers_books.insert().values(**data)
-    last_record_id = await database.execute(query)
-    return {"id": last_record_id}
