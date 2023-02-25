@@ -4,7 +4,7 @@ import sqlalchemy
 
 from fastapi import FastAPI
 from decouple import config
-from pydantic import BaseModel
+from pydantic import BaseModel, validate_email as validate_e, validator
 
 DATABASE_URL = f"postgresql://{config('DB_USER')}:{config('DB_PASSWORD')}@localhost:5432"
 
@@ -68,6 +68,15 @@ clothes = sqlalchemy.Table(
 class BaseUser(BaseModel):
     email: str
     full_name: str
+
+    @validator("email")
+    def validate_email(cls, v):
+        try:
+            validate_e(v)
+            return v
+        except:
+            raise ValueError("Email is not valid")
+             
 
 
 class UserSignIn(BaseUser):
