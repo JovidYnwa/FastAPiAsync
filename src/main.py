@@ -7,6 +7,8 @@ import sqlalchemy
 from fastapi import FastAPI
 from decouple import config
 from pydantic import BaseModel, validate_email as validate_e, validator
+from passlib.context import CryptContext
+
 
 DATABASE_URL = f"postgresql://{config('DB_USER')}:{config('DB_PASSWORD')}@localhost:5432"
 
@@ -106,7 +108,7 @@ class UserSignOut(BaseModel):
 
 
 app = FastAPI()
-
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 @app.on_event("startup")
 async def startup():
@@ -119,6 +121,7 @@ async def shutdown():
 
 @app.post("/register/", response_model=UserSignOut)
 async def create_user(user: UserSignIn):
+    user.password = pwd_context.hash(user.password)
     q = users.insert().values(**user.dict())
     id_ = await database.execute(q)
     created_user = await database.fetch_one(users.select().where(users.c.id==id_))
