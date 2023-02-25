@@ -5,7 +5,7 @@ import enum
 import jwt
 import sqlalchemy
 
-from fastapi import FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.requests import Request
 from decouple import config
@@ -124,13 +124,17 @@ class CustomHTTPBearer(HTTPBearer):
 
         try:
             payload = jwt.decode(res.credentials, config("JWT_SECRET"), algorithms=["HS256"])
-            user = await database.fetch_one(user.select().where(user.c.id==payload["sub"]))
+            user = await database.fetch_one(users.select().where(users.c.id==payload["sub"]))
             request.state.user = user
             return payload
         except jwt.ExpiredSignatureError:
             raise HTTPException(401, "Token is expired")
         except jwt.InvalidTokenError:
             raise jwt.InvalidTokenError(401, "Incalid Token")
+
+
+oauth2_sheme = CustomHTTPBearer()
+
 
 def create_access_token(user):
     try:
@@ -150,6 +154,10 @@ async def startup():
 @app.on_event("shutdown")
 async def shutdown():
     await database.disconnect()
+
+@app.get("/clothes/", dependencies=[Depends(oauth2_sheme)])
+async def get_all_clothes():
+    return await database.fetch_all(clothes.select())
 
 
 @app.post("/register/", )
