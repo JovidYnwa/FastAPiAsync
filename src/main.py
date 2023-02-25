@@ -65,8 +65,23 @@ clothes = sqlalchemy.Table(
 )
 
 
+class EmailField(str):
+
+    @classmethod
+    def __get_calidators__(cls):
+        yield cls.validate
+
+    @classmethod
+    def validate(cls, v)->str:
+        try:
+            validate_e(v)
+            return v
+        except:
+            raise ValueError("Email is not valid")
+
+
 class BaseUser(BaseModel):
-    email: str
+    email: EmailField
     full_name: str
 
     @validator("email")
