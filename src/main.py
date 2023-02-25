@@ -41,7 +41,7 @@ users = sqlalchemy.Table(
         server_default=sqlalchemy.func.now(),
         onupdate=sqlalchemy.func.now(),
     ),
-    sqlalchemy.Column("role", sqlalchemy.Enum(UserRole), nullable=False, server_defalut=UserRole.user)
+    sqlalchemy.Column("role", sqlalchemy.Enum(UserRole), nullable=False, server_default=UserRole.user.name)
 )
 
 
