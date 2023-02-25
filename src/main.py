@@ -5,7 +5,9 @@ import enum
 import jwt
 import sqlalchemy
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from starlette.requests import Request
 from decouple import config
 from pydantic import BaseModel, validate_email as validate_e, validator
 from passlib.context import CryptContext
@@ -111,6 +113,24 @@ class UserSignOut(BaseModel):
 
 app = FastAPI()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+class CustomHTTPBearer(HTTPBearer):
+    async def __call__(
+        self, request: Request
+    ) -> Optional[HTTPAuthorizationCredentials]:
+
+        res = await super().__call__(request)
+
+        try:
+            payload = jwt.decode(res.credentials, config("JWT_SECRET"), algorithms=["HS256"])
+            user = await database.fetch_one(user.select().where(user.c.id==payload["sub"]))
+            request.state.user = user
+            return payload
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(401, "Token is expired")
+        except jwt.InvalidTokenError:
+            raise jwt.InvalidTokenError(401, "Incalid Token")
 
 def create_access_token(user):
     try:
