@@ -143,6 +143,12 @@ class CustomHTTPBearer(HTTPBearer):
 oauth2_sheme = CustomHTTPBearer()
 
 
+def is_admin(request: Request):
+    user = request.state.user
+    if not  user and user["role"] not in (UserRole.admin, UserRole.super_admin):
+        raise HTTPException(403, "You do not have permissions for this resouse")
+
+
 def create_access_token(user):
     try:
         payload = {
@@ -167,7 +173,30 @@ async def get_all_clothes():
     return await database.fetch_all(clothes.select())
 
 
-@app.post("/register/", )
+class ClotheBase(BaseModel):
+    name: str
+    color: str
+    size: SizeEnum
+    color: ColorEnum
+
+
+class ClothesIn(ClotheBase):
+    pass
+
+
+class ClothesOut(ClotheBase):
+    id: int
+    created_at: datetime
+    last_modified_at: datetime
+
+
+@app.post("/clothes/", dependencies=[Depends(oauth2_sheme), Depends(is_admin)], status_code=201)
+async def create_clothes(clothes_data: ClothesIn):
+    id_ =  await database.execute(clothes.insert().values(**clothes_data.dict()))
+    return await database.fetch_one(clothes.select().where(clothes.c.id == id_))
+
+
+@app.post("/register/", status_code=201)
 async def create_user(user: UserSignIn):
     user.password = pwd_context.hash(user.password)
     q = users.insert().values(**user.dict())
