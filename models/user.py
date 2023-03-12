@@ -12,7 +12,8 @@ user = sqlalchemy.Table(
     sqlalchemy.Column("last_name", sqlalchemy.String(200)),
     sqlalchemy.Column("last_name", sqlalchemy.String(200)),
     sqlalchemy.Column("role", sqlalchemy.Enum(RoleType), nullable=False, 
-                      server_default=RoleType.complainer.name),
+                       server_default=RoleType.complainer.name),
     sqlalchemy.Column("iban", sqlalchemy.String(200)),
 
 )
+
