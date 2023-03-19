@@ -17,7 +17,7 @@ class UserManager:
         except UniqueViolationError:
             raise HTTPException(400, "User with this email already exists")
         user_do = await database.fetch_one(user.select().where(user.c.id == id_))
-        return AuthManager.Encode_token(user_do)
+        return AuthManager.encode_token(user_do)
 
     @staticmethod
     async def login(user_data):
