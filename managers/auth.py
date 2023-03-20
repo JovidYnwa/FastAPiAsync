@@ -46,6 +46,8 @@ class CustomHTTPBAREAR(HTTPBearer):
             raise HTTPException(401, "Invalid Token")
 
 
+oauth2_scheme = CustomHTTPBAREAR()
+
 def is_comlainer(request: Request):
     if not request.state.user["role"] == RoleType.complainer:
         raise HTTPException(403, "Forbidden")
