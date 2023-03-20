@@ -7,7 +7,7 @@ from decouple import config
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from starlette.requests import Request
 
-from db import databases
+from db import database
 from models import user
 from models.enums import RoleType
 
@@ -36,8 +36,8 @@ class CustomHTTPBAREAR(HTTPBearer):
         res = await super().__call__(request)
 
         try:
-            payload = jwt.decode(res.credentials, config("SECRET_KEY"), algorithms=["HS256"])
-            user_data = await databases.fetch_one(user.select().where(user.c.id == payload["sub"]))
+            payload = jwt.decode(res.credentials, config("JWT_SECRET"), algorithms=["HS256"])
+            user_data = await database.fetch_one(user.select().where(user.c.id == payload["sub"]))
             request.state.user = user_data
             return user_data
         except jwt.ExpiredSignatureError:

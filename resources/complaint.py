@@ -13,7 +13,7 @@ router = APIRouter(tags=["Complaints"])
 @router.get("/complaints/", dependencies=[Depends(oauth2_scheme)], response_model=List[ComplaintOut])
 async def get_complaints(request: Request):
     user = request.state.user
-    return await ComplaintManager.get_comlaints(user)
+    return await ComplaintManager.get_complaint(user)
 
 
 @router.post("/complaints/", dependencies=[Depends(oauth2_scheme)], response_model=ComplaintOut)
