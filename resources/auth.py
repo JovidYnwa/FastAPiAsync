@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from managers.user import UserManager
-from shemas.request.user import UserLoginIn, UserRegisterIn, 
+from shemas.request.user import UserLoginIn, UserRegisterIn
 
 
 router = APIRouter(tags=["Auth"])
