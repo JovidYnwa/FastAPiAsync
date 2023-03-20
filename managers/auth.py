@@ -14,13 +14,14 @@ from models import user
 class AuthManager:
 
     @staticmethod
-    def encode_token(self, user):
+    def encode_token(user):
         try: 
             payload = {
                 "sub": user["id"],
                 "exp": datetime.utcnow() + timedelta(minutes=120)
             }
-            return jwt.encode(payload, config("SECRET_KEY"), algorithm="HS256")
+            #print("yaa ", jwt.encode(payload, config("JWT_SECRET"), algorithm="HS256"))
+            return jwt.encode(payload, config("JWT_SECRET"), algorithm="HS256")
         except Exception as ex:
             #Log the exception
             return ex
