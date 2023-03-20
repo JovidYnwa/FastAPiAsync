@@ -1,8 +1,6 @@
 from pydantic import BaseModel
 
-
-class UserBase(BaseModel):
-    email: str
+from shemas.base import UserBase
 
 
 class UserRegisterIn(UserBase):
