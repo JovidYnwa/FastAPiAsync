@@ -9,6 +9,7 @@ from starlette.requests import Request
 
 from db import databases
 from models import user
+from models.enums import RoleType
 
 
 class AuthManager:
@@ -43,3 +44,18 @@ class CustomHTTPBAREAR(HTTPBearer):
             raise HTTPException(401, "Token is expired")
         except jwt.InvalidTokenError:
             raise HTTPException(401, "Invalid Token")
+
+
+def is_comlainer(request: Request):
+    if not request.state.user["role"] == RoleType.complainer:
+        raise HTTPException(403, "Forbidden")
+    
+
+def is_approver(request: Request):
+    if not request.state.user["role"] == RoleType.approver:
+        raise HTTPException(403, "Forbidden")
+    
+
+def is_admin(request: Request):
+    if not request.state.user["role"] == RoleType.admin:
+        raise HTTPException(403, "Forbidden")
